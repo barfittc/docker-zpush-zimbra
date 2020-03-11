@@ -8,6 +8,14 @@ ENV TERM xterm
 
 ENV ZPUSH_URL zpush_default
 
+RUN rm /etc/apt/preferences.d/no-debian-php
+
+RUN apt update && apt install php7.0-soap php7.0-cli php7.0-memcached dnsutils
+
+#ip=$(dig +short zimbra)
+#sed 's/.*zimbra.*/$ip        zimbra.flmaine.com/'  file
+# Create directory for zpush
+
 # Install zpush
 RUN cd /var/www/html && \
 	curl -L "http://download.z-push.org/final/${VERSION}/z-push-${VERSIONFULL}.tar.gz" | tar --strip-components=1 -x -z 
