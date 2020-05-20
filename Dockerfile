@@ -1,16 +1,22 @@
-FROM php:7.0-apache
-MAINTAINER Serge Ohl <docker@vizuweb.fr>
-
-ENV VERSION 2.3
-ENV VERSIONFULL 2.3.9
-ENV BACKENDVERSION 66
-ENV TERM xterm
-
-ENV ZPUSH_URL zpush_default
+FROM php:7.4-apache
 
 RUN rm /etc/apt/preferences.d/no-debian-php
 
-RUN apt update && apt install php7.0-soap php7.0-cli php7.0-memcached dnsutils
+RUN apt update && \
+	apt install -y dnsutils libxml2-dev && \
+	apt-get clean
+
+RUN docker-php-ext-install sysvmsg && \
+	docker-php-ext-install sysvsem && \
+	docker-php-ext-install sysvshm && \
+	docker-php-ext-install xml && \
+	docker-php-ext-install soap
+
+
+ENV VERSION 2.3
+ENV VERSIONFULL 2.3.9
+ENV BACKENDVERSION 69
+ENV TERM xterm
 
 #ip=$(dig +short zimbra)
 #sed 's/.*zimbra.*/$ip        zimbra.flmaine.com/'  file
@@ -42,4 +48,15 @@ EXPOSE 80
 
 COPY ./entrypoint.sh /opt/entrypoint.sh
 RUN chmod +x /opt/entrypoint.sh
+
+RUN rm /var/www/html/backend/zimbra/config.php
+COPY ./zimbra.config.php /var/www/html/backend/zimbra/config.php
+RUN rm /var/www/html/backend/zimbra/zimbra.php
+COPY ./zimbra.backend.php /var/www/html/backend/zimbra/zimbra.php
+
+RUN rm /var/www/html/index.php
+COPY ./zpush.index.php /var/www/html/index.php
+RUN rm /var/www/html/config.php
+COPY ./zpush.config.php /var/www/html/config.php
+
 ENTRYPOINT ["/bin/bash", "/opt/entrypoint.sh"]
